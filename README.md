@@ -1,12 +1,22 @@
 
 ### Questions
-* Seaborn, graphs and placeholder values
+- Numerical vs Categorical columns
+    - How is numerical defined? 
+    - When are the statistics important for these types of columns?
+    - How does one handle null values and placeholders?
+- How does one identify placeholders vs a legitimiate data point
+- How does one filter a dataframe using conditionals? 
+    - Specify rows based on conditions
 
 ### Objectives
 YWBAT 
-* know and apply strategies for handling null values
+* describe and apply strategies for handling null values
 * "" for handling placeholders
 * "" normalizing and standardizing data
+* use method chaining to store slices of data to variables
+* explain the importance of method chaining
+* apply the groupby method to create a new dataframe
+* create a pivot table
 
 ### Outline
 * Questions
@@ -21,7 +31,15 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+plt.xkcd()
 ```
+
+
+
+
+    <matplotlib.rc_context at 0x1a1c8730b8>
+
+
 
 ### Loading in super hero powers
 
@@ -203,15 +221,24 @@ df.head()
 
 
 
+### let's gather columns of similar data types
+
 
 ```python
-df["Agility"].dtype == bool
+all_boolean_columns = []
+
+for column in df.columns:
+    if df[column].dtype != bool:
+        all_boolean_columns.append(column)
+
+        
+all_boolean_columns
 ```
 
 
 
 
-    True
+    ['hero_names']
 
 
 
@@ -227,6 +254,8 @@ for column in df.columns:
     hero_names
 
 
+### count the null values in 'Agility' column
+
 
 ```python
 df['Agility'].isna().sum() == 0
@@ -238,6 +267,8 @@ df['Agility'].isna().sum() == 0
     True
 
 
+
+### print any column that has a null value
 
 
 ```python
@@ -362,6 +393,9 @@ df2.head()
 
 ```python
 df2.info()
+
+### what does 'object' dtype indicate?
+### text, dictionary
 ```
 
     <class 'pandas.core.frame.DataFrame'>
@@ -380,6 +414,39 @@ df2.info()
     dtypes: float64(2), object(8)
     memory usage: 63.1+ KB
 
+
+
+```python
+# How can we check if name column is a unique identifier?
+
+df2.name.unique().shape[0] == df2.shape[0]
+```
+
+
+
+
+    False
+
+
+
+
+```python
+df2.name.value_counts().head() # you can apply a .head() to a Series object
+```
+
+
+
+
+    Goliath           3
+    Spider-Man        3
+    Captain Marvel    2
+    Batgirl           2
+    Blue Beetle       2
+    Name: name, dtype: int64
+
+
+
+### Identify columns with null values
 
 
 ```python
@@ -403,9 +470,17 @@ df2.isna().sum()
 
 
 
+**Fetch the null values in the Publisher column**
+
 
 ```python
-df2[df2.Publisher.isna()==True].head()
+df2[df2.Publisher.isna()==True]
+
+# what would you do at this point if Publisher was important?
+
+# replace NaN with 'Unknown'
+# delete the rows, but we lose the data
+# manually input them, since there are only 15
 ```
 
 
@@ -507,6 +582,136 @@ df2[df2.Publisher.isna()==True].head()
       <td>bad</td>
       <td>-99.0</td>
     </tr>
+    <tr>
+      <th>244</th>
+      <td>Ethan Hunt</td>
+      <td>Male</td>
+      <td>brown</td>
+      <td>Human</td>
+      <td>Brown</td>
+      <td>168.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>263</th>
+      <td>Flash Gordon</td>
+      <td>Male</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>286</th>
+      <td>Godzilla</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Kaiju</td>
+      <td>-</td>
+      <td>108.0</td>
+      <td>NaN</td>
+      <td>grey</td>
+      <td>bad</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>348</th>
+      <td>Jack Bauer</td>
+      <td>Male</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>354</th>
+      <td>Jason Bourne</td>
+      <td>Male</td>
+      <td>-</td>
+      <td>Human</td>
+      <td>-</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>381</th>
+      <td>Katniss Everdeen</td>
+      <td>Female</td>
+      <td>-</td>
+      <td>Human</td>
+      <td>-</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>389</th>
+      <td>King Kong</td>
+      <td>Male</td>
+      <td>yellow</td>
+      <td>Animal</td>
+      <td>Black</td>
+      <td>30.5</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>393</th>
+      <td>Kool-Aid Man</td>
+      <td>Male</td>
+      <td>black</td>
+      <td>-</td>
+      <td>No Hair</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>red</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
+    <tr>
+      <th>542</th>
+      <td>Rambo</td>
+      <td>Male</td>
+      <td>brown</td>
+      <td>Human</td>
+      <td>Black</td>
+      <td>178.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>83.0</td>
+    </tr>
+    <tr>
+      <th>658</th>
+      <td>The Cape</td>
+      <td>Male</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-99.0</td>
+      <td>NaN</td>
+      <td>-</td>
+      <td>good</td>
+      <td>-99.0</td>
+    </tr>
   </tbody>
 </table>
 </div>
@@ -515,7 +720,28 @@ df2[df2.Publisher.isna()==True].head()
 
 
 ```python
-df2[df2.Height==-99].head()
+# this is how we would manually input 'Dark Horse Comics' into the 'Astro Boy' row
+
+df2.loc[df2.name=='Astro Boy', 'Publisher'] = 'Dark Horse Comics'
+```
+
+
+```python
+# you can fill nulls this way
+# but it's better to use the .fillna method
+# df2.loc[df2.Publisher.isnull()==True, 'Publisher']='Unknown'
+
+
+```
+
+
+```python
+df2.loc[df2.name=='Abraxas', 'Height']=-99.0
+```
+
+
+```python
+df2.loc[df2.name=='Abraxas']
 ```
 
 
@@ -559,68 +785,30 @@ df2[df2.Height==-99].head()
       <td>blue</td>
       <td>Cosmic Entity</td>
       <td>Black</td>
-      <td>-99.0</td>
+      <td>-99</td>
       <td>Marvel Comics</td>
       <td>-</td>
       <td>bad</td>
-      <td>-99.0</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>Adam Monroe</td>
-      <td>Male</td>
-      <td>blue</td>
-      <td>-</td>
-      <td>Blond</td>
-      <td>-99.0</td>
-      <td>NBC - Heroes</td>
-      <td>-</td>
-      <td>good</td>
-      <td>-99.0</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>Alex Mercer</td>
-      <td>Male</td>
-      <td>-</td>
-      <td>Human</td>
-      <td>-</td>
-      <td>-99.0</td>
-      <td>Wildstorm</td>
-      <td>-</td>
-      <td>bad</td>
-      <td>-99.0</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>Alex Woolsly</td>
-      <td>Male</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-99.0</td>
-      <td>NBC - Heroes</td>
-      <td>-</td>
-      <td>good</td>
-      <td>-99.0</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>Allan Quatermain</td>
-      <td>Male</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-99.0</td>
-      <td>Wildstorm</td>
-      <td>-</td>
-      <td>good</td>
       <td>-99.0</td>
     </tr>
   </tbody>
 </table>
 </div>
 
+
+
+
+```python
+# this doesn't work for modifying data in the dataframe
+df2[df2['name']=='Abraxas']['Height']='really tall'
+```
+
+    /Users/rcarrasco/anaconda3/lib/python3.7/site-packages/ipykernel_launcher.py:2: SettingWithCopyWarning: 
+    A value is trying to be set on a copy of a slice from a DataFrame.
+    Try using .loc[row_indexer,col_indexer] = value instead
+    
+    See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+      
 
 
 
@@ -635,8 +823,456 @@ df2.Weight.replace(to_replace=-99.0, value=np.nan, inplace=True)
 
 
 ```python
+df2.Height.value_counts(sort=True, ascending=False).head()
+```
+
+
+
+
+    183.0    59
+    188.0    51
+    178.0    39
+    180.0    38
+    185.0    35
+    Name: Height, dtype: int64
+
+
+
+
+```python
+df2.Height.mean(), df2.Height.std()
+
+### How do we handle numerical null values
+```
+
+
+
+
+    (186.72630560928434, 59.25189465200381)
+
+
+
+
+```python
+df2.Height.isna().sum()
+```
+
+
+
+
+    217
+
+
+
+
+```python
+plt.figure(figsize=(8, 5))
+plt.hist(df2.Height, bins=30)
+plt.show()
+```
+
+    /Users/rcarrasco/anaconda3/lib/python3.7/site-packages/numpy/lib/histograms.py:824: RuntimeWarning: invalid value encountered in greater_equal
+      keep = (tmp_a >= first_edge)
+    /Users/rcarrasco/anaconda3/lib/python3.7/site-packages/numpy/lib/histograms.py:825: RuntimeWarning: invalid value encountered in less_equal
+      keep &= (tmp_a <= last_edge)
+
+
+
+![png](lesson-plan_files/lesson-plan_33_1.png)
+
+
+### Methods for handling numerical nulls
+
+
+```python
+# replace with 0
+df2['Height'].replace(to_replace=np.nan, value=0, inplace=True)
+df2.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>Gender</th>
+      <th>Eye color</th>
+      <th>Race</th>
+      <th>Hair color</th>
+      <th>Height</th>
+      <th>Publisher</th>
+      <th>Skin color</th>
+      <th>Alignment</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>A-Bomb</td>
+      <td>Male</td>
+      <td>yellow</td>
+      <td>Human</td>
+      <td>No Hair</td>
+      <td>203.0</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>good</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Abe Sapien</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Icthyo Sapien</td>
+      <td>No Hair</td>
+      <td>191.0</td>
+      <td>Dark Horse Comics</td>
+      <td>blue</td>
+      <td>good</td>
+      <td>65.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Abin Sur</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Ungaran</td>
+      <td>No Hair</td>
+      <td>185.0</td>
+      <td>DC Comics</td>
+      <td>red</td>
+      <td>good</td>
+      <td>90.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Abomination</td>
+      <td>Male</td>
+      <td>green</td>
+      <td>Human / Radiation</td>
+      <td>No Hair</td>
+      <td>203.0</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>bad</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Abraxas</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Cosmic Entity</td>
+      <td>Black</td>
+      <td>0.0</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>bad</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# replace with the mean Height
+mean_height = 186.72630560928434
+df2['Height'].replace(to_replace=0.0, value=mean_height, inplace=True)
+
+df2.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>Gender</th>
+      <th>Eye color</th>
+      <th>Race</th>
+      <th>Hair color</th>
+      <th>Height</th>
+      <th>Publisher</th>
+      <th>Skin color</th>
+      <th>Alignment</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>A-Bomb</td>
+      <td>Male</td>
+      <td>yellow</td>
+      <td>Human</td>
+      <td>No Hair</td>
+      <td>203.000000</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>good</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Abe Sapien</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Icthyo Sapien</td>
+      <td>No Hair</td>
+      <td>191.000000</td>
+      <td>Dark Horse Comics</td>
+      <td>blue</td>
+      <td>good</td>
+      <td>65.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Abin Sur</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Ungaran</td>
+      <td>No Hair</td>
+      <td>185.000000</td>
+      <td>DC Comics</td>
+      <td>red</td>
+      <td>good</td>
+      <td>90.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Abomination</td>
+      <td>Male</td>
+      <td>green</td>
+      <td>Human / Radiation</td>
+      <td>No Hair</td>
+      <td>203.000000</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>bad</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Abraxas</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Cosmic Entity</td>
+      <td>Black</td>
+      <td>186.726306</td>
+      <td>Marvel Comics</td>
+      <td>-</td>
+      <td>bad</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# replace with normal distribution of random numbers
+
+mean_height = df2.Height.mean()
+std_height = df2.Height.std()
+num_missing = df2.Height.isna().sum()
+
+new_values = np.random.normal(mean_height, std_height, num_missing)
+
+df2.loc[df2.Height.isna(), 'Height'] = new_values
+
+df2.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>Gender</th>
+      <th>Eye color</th>
+      <th>Race</th>
+      <th>Hair color</th>
+      <th>Height</th>
+      <th>Publisher</th>
+      <th>Skin color</th>
+      <th>Alignment</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>A-Bomb</td>
+      <td>Male</td>
+      <td>yellow</td>
+      <td>Human</td>
+      <td>No Hair</td>
+      <td>203.000000</td>
+      <td>Marvel Comics</td>
+      <td>NaN</td>
+      <td>good</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Abe Sapien</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Icthyo Sapien</td>
+      <td>No Hair</td>
+      <td>191.000000</td>
+      <td>Dark Horse Comics</td>
+      <td>blue</td>
+      <td>good</td>
+      <td>65.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Abin Sur</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Ungaran</td>
+      <td>No Hair</td>
+      <td>185.000000</td>
+      <td>DC Comics</td>
+      <td>red</td>
+      <td>good</td>
+      <td>90.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Abomination</td>
+      <td>Male</td>
+      <td>green</td>
+      <td>Human / Radiation</td>
+      <td>No Hair</td>
+      <td>203.000000</td>
+      <td>Marvel Comics</td>
+      <td>NaN</td>
+      <td>bad</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Abraxas</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Cosmic Entity</td>
+      <td>Black</td>
+      <td>144.728494</td>
+      <td>Marvel Comics</td>
+      <td>NaN</td>
+      <td>bad</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+plt.figure(figsize=(8, 5))
+plt.hist(df2.Height, bins=30)
+plt.show()
+```
+
+
+![png](lesson-plan_files/lesson-plan_38_0.png)
+
+
+### How can we filter placeholders?
+- You really can't you just have to find them
+
+
+```python
 df2["Skin color"].replace(to_replace="-", value=np.nan, inplace=True)
 ```
+
+
+```python
+df2["Skin color"].unique() # quick scan for placeholders
+```
+
+
+
+
+    array([nan, 'blue', 'red', 'black', 'grey', 'gold', 'green', 'white',
+           'pink', 'silver', 'red / black', 'yellow', 'purple',
+           'orange / white', 'gray', 'blue-white', 'orange'], dtype=object)
+
+
+
+
+```python
+df2.Gender.unique()
+```
+
+
+
+
+    array(['Male', 'Female', '-'], dtype=object)
+
+
 
 
 ```python
@@ -694,6 +1330,8 @@ df2.isnull().sum()
 
 
 ```python
+# I would just drop Skin Color, because of the amount of Null values
+df2 = df2.drop("Skin color", axis=1)
 df2.head()
 ```
 
@@ -725,7 +1363,6 @@ df2.head()
       <th>Hair color</th>
       <th>Height</th>
       <th>Publisher</th>
-      <th>Skin color</th>
       <th>Alignment</th>
       <th>Weight</th>
     </tr>
@@ -740,7 +1377,6 @@ df2.head()
       <td>No Hair</td>
       <td>203.0</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>good</td>
       <td>441.0</td>
     </tr>
@@ -753,7 +1389,6 @@ df2.head()
       <td>No Hair</td>
       <td>191.0</td>
       <td>Dark Horse Comics</td>
-      <td>blue</td>
       <td>good</td>
       <td>65.0</td>
     </tr>
@@ -766,7 +1401,6 @@ df2.head()
       <td>No Hair</td>
       <td>185.0</td>
       <td>DC Comics</td>
-      <td>red</td>
       <td>good</td>
       <td>90.0</td>
     </tr>
@@ -779,7 +1413,6 @@ df2.head()
       <td>No Hair</td>
       <td>203.0</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>bad</td>
       <td>441.0</td>
     </tr>
@@ -792,7 +1425,121 @@ df2.head()
       <td>Black</td>
       <td>NaN</td>
       <td>Marvel Comics</td>
+      <td>bad</td>
       <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Now that my dataframe is cleaned, I'm going to save it as a clean file
+
+
+```python
+df2.to_csv("./cleaned_heroes_information.csv", index=0) 
+# this will create the dataframe without that weird 'Unnamed' column
+```
+
+
+```python
+###
+
+df3 = pd.read_csv("./cleaned_heroes_information.csv")
+df3.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>Gender</th>
+      <th>Eye color</th>
+      <th>Race</th>
+      <th>Hair color</th>
+      <th>Height</th>
+      <th>Publisher</th>
+      <th>Alignment</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>A-Bomb</td>
+      <td>Male</td>
+      <td>yellow</td>
+      <td>Human</td>
+      <td>No Hair</td>
+      <td>203.0</td>
+      <td>Marvel Comics</td>
+      <td>good</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Abe Sapien</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Icthyo Sapien</td>
+      <td>No Hair</td>
+      <td>191.0</td>
+      <td>Dark Horse Comics</td>
+      <td>good</td>
+      <td>65.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Abin Sur</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Ungaran</td>
+      <td>No Hair</td>
+      <td>185.0</td>
+      <td>DC Comics</td>
+      <td>good</td>
+      <td>90.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Abomination</td>
+      <td>Male</td>
+      <td>green</td>
+      <td>Human / Radiation</td>
+      <td>No Hair</td>
+      <td>203.0</td>
+      <td>Marvel Comics</td>
+      <td>bad</td>
+      <td>441.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Abraxas</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Cosmic Entity</td>
+      <td>Black</td>
+      <td>NaN</td>
+      <td>Marvel Comics</td>
       <td>bad</td>
       <td>NaN</td>
     </tr>
@@ -804,23 +1551,36 @@ df2.head()
 
 
 ```python
-new_columns = []
-for col in df2.columns:
-    if len(col.split(" ")) > 1:
-        new_columns.append(col.replace(" ", "").lower())
-    else:
-        new_columns.append(col.lower())
+renamed_cols = [col.lower().replace(" ", "_") for col in df3.columns]
+print(renamed_cols)
+
+name_mapper = dict(zip(df3.columns, renamed_cols))
+
+name_mapper
 ```
+
+    ['name', 'gender', 'eye_color', 'race', 'hair_color', 'height', 'publisher', 'alignment', 'weight']
+
+
+
+
+
+    {'name': 'name',
+     'Gender': 'gender',
+     'Eye color': 'eye_color',
+     'Race': 'race',
+     'Hair color': 'hair_color',
+     'Height': 'height',
+     'Publisher': 'publisher',
+     'Alignment': 'alignment',
+     'Weight': 'weight'}
+
+
 
 
 ```python
-columns_dict = dict(zip(df2.columns, new_columns))
-```
-
-
-```python
-df2.rename(mapper=columns_dict, inplace=True, axis=1)
-df2.head()
+df3.rename(mapper=name_mapper, axis=1, inplace=True)
+df3.head()
 ```
 
 
@@ -846,12 +1606,11 @@ df2.head()
       <th></th>
       <th>name</th>
       <th>gender</th>
-      <th>eyecolor</th>
+      <th>eye_color</th>
       <th>race</th>
-      <th>haircolor</th>
+      <th>hair_color</th>
       <th>height</th>
       <th>publisher</th>
-      <th>skincolor</th>
       <th>alignment</th>
       <th>weight</th>
     </tr>
@@ -866,7 +1625,6 @@ df2.head()
       <td>No Hair</td>
       <td>203.0</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>good</td>
       <td>441.0</td>
     </tr>
@@ -879,7 +1637,6 @@ df2.head()
       <td>No Hair</td>
       <td>191.0</td>
       <td>Dark Horse Comics</td>
-      <td>blue</td>
       <td>good</td>
       <td>65.0</td>
     </tr>
@@ -892,7 +1649,6 @@ df2.head()
       <td>No Hair</td>
       <td>185.0</td>
       <td>DC Comics</td>
-      <td>red</td>
       <td>good</td>
       <td>90.0</td>
     </tr>
@@ -905,7 +1661,6 @@ df2.head()
       <td>No Hair</td>
       <td>203.0</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>bad</td>
       <td>441.0</td>
     </tr>
@@ -918,7 +1673,6 @@ df2.head()
       <td>Black</td>
       <td>NaN</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>bad</td>
       <td>NaN</td>
     </tr>
@@ -930,29 +1684,8 @@ df2.head()
 
 
 ```python
-df2.isna().sum()
-```
-
-
-
-
-    name           0
-    gender        29
-    eyecolor     172
-    race         304
-    haircolor    172
-    height       217
-    publisher     15
-    skincolor    662
-    alignment      7
-    weight       239
-    dtype: int64
-
-
-
-
-```python
-df2.alignment.value_counts()
+# what are the value counts for the 'alignment' column
+df3.alignment.value_counts()
 ```
 
 
@@ -967,7 +1700,9 @@ df2.alignment.value_counts()
 
 
 ```python
-df2[df2.alignment.isna()]
+df3[df3.alignment.isna()]
+
+# there is a small enough number that you could replace these manually
 ```
 
 
@@ -993,17 +1728,28 @@ df2[df2.alignment.isna()]
       <th></th>
       <th>name</th>
       <th>gender</th>
-      <th>eyecolor</th>
+      <th>eye_color</th>
       <th>race</th>
-      <th>haircolor</th>
+      <th>hair_color</th>
       <th>height</th>
       <th>publisher</th>
-      <th>skincolor</th>
       <th>alignment</th>
       <th>weight</th>
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <th>33</th>
+      <td>Anti-Venom</td>
+      <td>Male</td>
+      <td>blue</td>
+      <td>Symbiote</td>
+      <td>Blond</td>
+      <td>229.0</td>
+      <td>Marvel Comics</td>
+      <td>NaN</td>
+      <td>358.0</td>
+    </tr>
     <tr>
       <th>110</th>
       <td>Blackwulf</td>
@@ -1013,7 +1759,6 @@ df2[df2.alignment.isna()]
       <td>White</td>
       <td>188.0</td>
       <td>Marvel Comics</td>
-      <td>NaN</td>
       <td>NaN</td>
       <td>88.0</td>
     </tr>
@@ -1028,18 +1773,16 @@ df2[df2.alignment.isna()]
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
     </tr>
     <tr>
       <th>426</th>
       <td>Man of Miracles</td>
-      <td>Male</td>
+      <td>NaN</td>
       <td>blue</td>
       <td>God / Eternal</td>
       <td>Silver</td>
       <td>NaN</td>
       <td>Image Comics</td>
-      <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
     </tr>
@@ -1054,7 +1797,6 @@ df2[df2.alignment.isna()]
       <td>Star Trek</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>NaN</td>
     </tr>
     <tr>
       <th>676</th>
@@ -1066,269 +1808,18 @@ df2[df2.alignment.isna()]
       <td>183.0</td>
       <td>DC Comics</td>
       <td>NaN</td>
-      <td>NaN</td>
       <td>81.0</td>
     </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-
-```python
-df2.isna().sum()
-```
-
-
-
-
-    name           0
-    gender        28
-    eyecolor     172
-    race         304
-    haircolor    172
-    height       217
-    publisher     15
-    skincolor    662
-    alignment      5
-    weight       239
-    dtype: int64
-
-
-
-
-```python
-df2[df2.publisher.isna()]
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>name</th>
-      <th>gender</th>
-      <th>eyecolor</th>
-      <th>race</th>
-      <th>haircolor</th>
-      <th>height</th>
-      <th>publisher</th>
-      <th>skincolor</th>
-      <th>alignment</th>
-      <th>weight</th>
-    </tr>
-  </thead>
-  <tbody>
     <tr>
-      <th>46</th>
-      <td>Astro Boy</td>
-      <td>Male</td>
-      <td>brown</td>
-      <td>NaN</td>
-      <td>Black</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>86</th>
-      <td>Bionic Woman</td>
-      <td>Female</td>
-      <td>blue</td>
-      <td>Cyborg</td>
-      <td>Black</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>138</th>
-      <td>Brundlefly</td>
+      <th>692</th>
+      <td>Venompool</td>
       <td>Male</td>
       <td>NaN</td>
-      <td>Mutant</td>
+      <td>Symbiote</td>
       <td>NaN</td>
-      <td>193.0</td>
+      <td>226.0</td>
+      <td>Marvel Comics</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>175</th>
-      <td>Chuck Norris</td>
-      <td>Male</td>
-      <td>green</td>
-      <td>Human</td>
-      <td>Brown</td>
-      <td>178.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>204</th>
-      <td>Darkside</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>bad</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>244</th>
-      <td>Ethan Hunt</td>
-      <td>Male</td>
-      <td>brown</td>
-      <td>Human</td>
-      <td>Brown</td>
-      <td>168.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>263</th>
-      <td>Flash Gordon</td>
-      <td>Male</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>286</th>
-      <td>Godzilla</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Kaiju</td>
-      <td>NaN</td>
-      <td>108.0</td>
-      <td>NaN</td>
-      <td>grey</td>
-      <td>bad</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>348</th>
-      <td>Jack Bauer</td>
-      <td>Male</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>354</th>
-      <td>Jason Bourne</td>
-      <td>Male</td>
-      <td>NaN</td>
-      <td>Human</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>381</th>
-      <td>Katniss Everdeen</td>
-      <td>Female</td>
-      <td>NaN</td>
-      <td>Human</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>389</th>
-      <td>King Kong</td>
-      <td>Male</td>
-      <td>yellow</td>
-      <td>Animal</td>
-      <td>Black</td>
-      <td>30.5</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>393</th>
-      <td>Kool-Aid Man</td>
-      <td>Male</td>
-      <td>black</td>
-      <td>NaN</td>
-      <td>No Hair</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>red</td>
-      <td>good</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>542</th>
-      <td>Rambo</td>
-      <td>Male</td>
-      <td>brown</td>
-      <td>Human</td>
-      <td>Black</td>
-      <td>178.0</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
-      <td>83.0</td>
-    </tr>
-    <tr>
-      <th>658</th>
-      <td>The Cape</td>
-      <td>Male</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>good</td>
       <td>NaN</td>
     </tr>
   </tbody>
@@ -1339,123 +1830,18 @@ df2[df2.publisher.isna()]
 
 
 ```python
-df2.loc[df2.name =='Chuck Norris', ['haircolor']] = 'Brown'
-```
-
-
-```python
-df2.drop(columns='skincolor', inplace=True, axis=1)
-df2.head()
+df3.name.str.lower().head()
 ```
 
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>name</th>
-      <th>gender</th>
-      <th>eyecolor</th>
-      <th>race</th>
-      <th>haircolor</th>
-      <th>height</th>
-      <th>publisher</th>
-      <th>alignment</th>
-      <th>weight</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>A-Bomb</td>
-      <td>Male</td>
-      <td>yellow</td>
-      <td>Human</td>
-      <td>No Hair</td>
-      <td>203.0</td>
-      <td>Marvel Comics</td>
-      <td>good</td>
-      <td>441.0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Abe Sapien</td>
-      <td>Male</td>
-      <td>blue</td>
-      <td>Icthyo Sapien</td>
-      <td>No Hair</td>
-      <td>191.0</td>
-      <td>Dark Horse Comics</td>
-      <td>good</td>
-      <td>65.0</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Abin Sur</td>
-      <td>Male</td>
-      <td>blue</td>
-      <td>Ungaran</td>
-      <td>No Hair</td>
-      <td>185.0</td>
-      <td>DC Comics</td>
-      <td>good</td>
-      <td>90.0</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Abomination</td>
-      <td>Male</td>
-      <td>green</td>
-      <td>Human / Radiation</td>
-      <td>No Hair</td>
-      <td>203.0</td>
-      <td>Marvel Comics</td>
-      <td>bad</td>
-      <td>441.0</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Abraxas</td>
-      <td>Male</td>
-      <td>blue</td>
-      <td>Cosmic Entity</td>
-      <td>Black</td>
-      <td>NaN</td>
-      <td>Marvel Comics</td>
-      <td>bad</td>
-      <td>NaN</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-
-```python
-df2["name"].dtype == 'O'
-```
-
-
-
-
-    True
+    0         a-bomb
+    1     abe sapien
+    2       abin sur
+    3    abomination
+    4        abraxas
+    Name: name, dtype: object
 
 
 
@@ -1463,10 +1849,11 @@ df2["name"].dtype == 'O'
 
 
 ```python
-for col in df2.columns:
-    if df2[col].dtype == 'O':
-        df2[col] = df2[col].str.lower()
-df2.head()
+for column in df3.columns:
+    if df3[column].dtype=='O':
+        df3[column] = df3[column].str.lower()
+        
+df3.head()
 ```
 
 
@@ -1492,9 +1879,9 @@ df2.head()
       <th></th>
       <th>name</th>
       <th>gender</th>
-      <th>eyecolor</th>
+      <th>eye_color</th>
       <th>race</th>
-      <th>haircolor</th>
+      <th>hair_color</th>
       <th>height</th>
       <th>publisher</th>
       <th>alignment</th>
@@ -1575,13 +1962,134 @@ df2.head()
 
 
 ```python
-df.shape, df2.shape
+df.shape, df3.shape
 ```
 
 
 
 
     ((667, 168), (734, 9))
+
+
+
+
+```python
+hero = df3.name[0]
+hero
+```
+
+
+
+
+    'a-bomb'
+
+
+
+
+```python
+hero_row = df.loc[df["hero_names"].str.lower()==hero].drop('hero_names', axis=1)
+hero_row
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Agility</th>
+      <th>Accelerated Healing</th>
+      <th>Lantern Power Ring</th>
+      <th>Dimensional Awareness</th>
+      <th>Cold Resistance</th>
+      <th>Durability</th>
+      <th>Stealth</th>
+      <th>Energy Absorption</th>
+      <th>Flight</th>
+      <th>Danger Sense</th>
+      <th>...</th>
+      <th>Web Creation</th>
+      <th>Reality Warping</th>
+      <th>Odin Force</th>
+      <th>Symbiote Costume</th>
+      <th>Speed Force</th>
+      <th>Phoenix Force</th>
+      <th>Molecular Dissipation</th>
+      <th>Vision - Cryo</th>
+      <th>Omnipresent</th>
+      <th>Omniscient</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>...</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 167 columns</p>
+</div>
+
+
+
+
+```python
+hero_super_powers = []
+for col in hero_row.columns:
+    if hero_row[col].values[0] == True:
+        hero_super_powers.append(col)
+```
+
+
+```python
+hero_super_powers
+```
+
+
+
+
+    ['Accelerated Healing',
+     'Durability',
+     'Longevity',
+     'Super Strength',
+     'Stamina',
+     'Camouflage',
+     'Self-Sustenance']
 
 
 
@@ -2872,6 +3380,7 @@ heros
       'energy blasts',
       'energy beams',
       'energy resistance'],
+     'dl hawkins': ['phasing'],
      'dagger': ['energy blasts', 'light control', 'natural weapons'],
      'daphne powell': ['telepathy'],
      'daredevil': ['agility',
@@ -3068,7 +3577,6 @@ heros
       'molecular manipulation',
       'levitation'],
      'diamondback': ['marksmanship', 'weapons master'],
-     'dl hawkins': ['phasing'],
      'doc samson': ['durability', 'super strength', 'stamina'],
      'doctor doom': ['durability',
       'flight',
@@ -4118,6 +4626,7 @@ heros
       'telekinesis',
       'element control',
       'plant control'],
+     'jj powell': ['intelligence'],
      'jack of hearts': ['accelerated healing',
       'cold resistance',
       'durability',
@@ -4200,7 +4709,6 @@ heros
       'super speed',
       'telepathy resistance'],
      'jim powell': ['durability', 'super strength', 'jump'],
-     'jj powell': ['intelligence'],
      'johann krauss': ['telepathy', 'self-sustenance'],
      'john constantine': ['accelerated healing',
       'magic',
@@ -4643,6 +5151,21 @@ heros
       'the force'],
      'luna': ['psionic powers'],
      'lyja': ['energy blasts', 'size changing', 'shapeshifting'],
+     'modok': ['agility',
+      'flight',
+      'weapons master',
+      'longevity',
+      'intelligence',
+      'telepathy',
+      'energy blasts',
+      'telekinesis',
+      'force fields',
+      'empathy',
+      'psionic powers',
+      'technopath/cyberpath',
+      'heat generation',
+      'levitation',
+      'illusions'],
      'mach-iv': ['durability',
       'flight',
       'super strength',
@@ -5030,21 +5553,6 @@ heros
       'weapons master',
       'longevity',
       'super strength'],
-     'modok': ['agility',
-      'flight',
-      'weapons master',
-      'longevity',
-      'intelligence',
-      'telepathy',
-      'energy blasts',
-      'telekinesis',
-      'force fields',
-      'empathy',
-      'psionic powers',
-      'technopath/cyberpath',
-      'heat generation',
-      'levitation',
-      'illusions'],
      'mohinder suresh': ['super strength'],
      'molten man': ['durability',
       'super strength',
@@ -5731,6 +6239,7 @@ heros
       'weapons master',
       'intelligence',
       'stamina'],
+     'shdb': ['nova force', 'omnipotent', 'power cosmic', 'sub-mariner'],
      'sabretooth': ['agility',
       'accelerated healing',
       'cold resistance',
@@ -5912,7 +6421,6 @@ heros
       'super strength',
       'energy blasts',
       'super speed'],
-     'shdb': ['nova force', 'omnipotent', 'power cosmic', 'sub-mariner'],
      'she-hulk': ['accelerated healing',
       'durability',
       'longevity',
@@ -6586,6 +7094,7 @@ heros
       'vision - night',
       'vision - infrared',
       'vision - thermal'],
+     'test': ['natural armor'],
      'taskmaster': ['agility',
       'stealth',
       'marksmanship',
@@ -6601,7 +7110,6 @@ heros
       'fire control',
       'force fields',
       'wind control'],
-     'test': ['natural armor'],
      'thanos': ['agility',
       'accelerated healing',
       'cold resistance',
@@ -7244,7 +7752,7 @@ powers_column = []
 
 
 ```python
-for name in df2.name:
+for name in df3.name:
     powers = heros.get(name, None)
     powers_column.append(powers)
 powers_column
@@ -12946,49 +13454,8 @@ powers_column
 
 
 ```python
-df.shape, df2.shape
-```
-
-
-
-
-    ((667, 168), (734, 9))
-
-
-
-
-```python
-d = {"a": 5}
-```
-
-
-```python
-d.get("a", "b")
-```
-
-
-
-
-    5
-
-
-
-
-```python
-d.get("b", "this is cool")
-```
-
-
-
-
-    'this is cool'
-
-
-
-
-```python
-df2["superpowers"] = powers_column
-df2.head()
+df3["superpowers"] = powers_column
+df3.head()
 ```
 
 
@@ -13014,9 +13481,9 @@ df2.head()
       <th></th>
       <th>name</th>
       <th>gender</th>
-      <th>eyecolor</th>
+      <th>eye_color</th>
       <th>race</th>
-      <th>haircolor</th>
+      <th>hair_color</th>
       <th>height</th>
       <th>publisher</th>
       <th>alignment</th>
@@ -13100,25 +13567,9 @@ df2.head()
 
 
 ```python
-males = df2[df2.gender == 'male']
-females = df2[df2.gender == 'female']
+males = df3[df3.gender == 'male']
+females = df3[df3.gender == 'female']
 ```
-
-
-```python
-sns.
-```
-
-
-
-
-    <matplotlib.axes._subplots.AxesSubplot at 0x10de0a3c8>
-
-
-
-
-![png](lesson-plan_files/lesson-plan_54_1.png)
-
 
 
 ```python
@@ -13135,7 +13586,7 @@ plot_sns_hist(males, 'height')
 ```
 
 
-![png](lesson-plan_files/lesson-plan_56_0.png)
+![png](lesson-plan_files/lesson-plan_75_0.png)
 
 
 
@@ -13144,17 +13595,19 @@ plot_sns_hist(females, 'weight')
 ```
 
 
-![png](lesson-plan_files/lesson-plan_57_0.png)
+![png](lesson-plan_files/lesson-plan_76_0.png)
 
 
 ### Assessment
 
 ### What did I learn?
-* Start differently find placeholders get a feel for the data - Savannah
-* How to methodically go through the table - Levi
-* Using for loops to iterate through rows and columns in dataframes - Levi
-* Chuck Norris has green eyes - Parker
-* get method for dictionaries is a quick if/else statement
-* .str methods on dataframes - Parker
-* understanding of syntax around dfs - Parker
-* choose columns based on datatype
+
+I learned...
+- that the replace function allows you to replace values in either the dataframe or a series of the dataframe
+- you can search/group information based on data types by pulling the column then searching in the series
+- null values can be used in ways that are meaningful, they aren't always bad. 
+
+
+```python
+
+```
